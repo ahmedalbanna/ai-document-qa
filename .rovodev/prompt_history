@@ -64,3 +64,15 @@
 
 # 2026-02-21 22:00:28.147610
 +/memory reflect 
+
+# 2026-02-21 23:29:17.811773
++/clear 
+
+# 2026-02-21 23:29:20.573395
++/sessions 
+
+# 2026-02-21 23:29:34.850999
++/sessions fork 
+
+# 2026-02-21 23:30:23.449270
++make llm response language from language input such input arabic llm response arabic

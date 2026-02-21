@@ -139,7 +139,7 @@ announcementTracking:
 sessionFeedback:
   permanentlyDisabled: false
   # ISO timestamp of the last provided feedback
-  lastFeedbackAsked: null
+  lastFeedbackAsked: '2026-02-21T23:32:06.441323+00:00'
 
 atlassianBillingSite:
   siteUrl: https://ahmedalbannacode-1771706556875.atlassian.net

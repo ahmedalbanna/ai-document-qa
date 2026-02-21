@@ -3,6 +3,10 @@ import logging
 from typing import List, Dict, Any, AsyncGenerator
 import httpx
 import json
+from langdetect import detect, DetectorFactory
+
+# Set seed for consistent language detection
+DetectorFactory.seed = 0
 
 logger = logging.getLogger(__name__)
 
@@ -75,9 +79,54 @@ class LLMService:
         
         return "\n\n".join(context_parts)
     
+    def _detect_language(self, text: str) -> str:
+        """Detect the language of the input text"""
+        try:
+            lang_code = detect(text)
+            logger.info(f"Detected language: {lang_code}")
+            return lang_code
+        except Exception as e:
+            logger.warning(f"Language detection failed: {str(e)}, defaulting to English")
+            return "en"
+    
+    def _get_language_instruction(self, lang_code: str) -> str:
+        """Get language-specific instruction for the LLM"""
+        language_map = {
+            "ar": "Arabic",
+            "en": "English",
+            "es": "Spanish",
+            "fr": "French",
+            "de": "German",
+            "it": "Italian",
+            "pt": "Portuguese",
+            "ru": "Russian",
+            "ja": "Japanese",
+            "zh-cn": "Chinese",
+            "zh-tw": "Chinese",
+            "ko": "Korean",
+            "hi": "Hindi",
+            "tr": "Turkish",
+            "nl": "Dutch",
+            "pl": "Polish",
+            "sv": "Swedish",
+            "fi": "Finnish",
+            "da": "Danish",
+            "no": "Norwegian"
+        }
+        
+        language_name = language_map.get(lang_code, "English")
+        return f"IMPORTANT: You MUST respond in {language_name}. The user is asking in {language_name}, so your entire answer must be in {language_name}."
+    
     def _create_prompt(self, question: str, context: str) -> str:
-        """Create RAG prompt"""
+        """Create RAG prompt with language detection"""
+        # Detect the language of the question
+        detected_lang = self._detect_language(question)
+        language_instruction = self._get_language_instruction(detected_lang)
+        
         prompt = f"""You are a helpful AI assistant that answers questions based on the provided context.
+
+{language_instruction}
+
 Use the following context to answer the question. If the answer cannot be found in the context, say so clearly.
 Always cite which source(s) you used in your answer by referring to [Source X].
 
@@ -86,7 +135,7 @@ Context:
 
 Question: {question}
 
-Answer (be accurate, professional, and cite your sources):"""
+Answer (be accurate, professional, cite your sources, and respond in the same language as the question):"""
         
         return prompt
     
