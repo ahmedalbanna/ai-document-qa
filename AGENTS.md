@@ -162,6 +162,15 @@ npm install
 npm start
 ```
 
+### Important: React Environment Variables
+
+⚠️ **CRITICAL**: React variables prefixed with `REACT_APP_` are embedded at **build time**, not runtime:
+- Variables are baked into the compiled JavaScript bundle during `npm run build`
+- Changes to `.env` or docker-compose environment sections require **container rebuild**
+- For Docker: Use `docker compose up -d --force-recreate frontend` after changing API URLs
+- The frontend container **cannot dynamically reload** environment variables like a traditional backend server
+- This is a common source of confusion when deploying to different environments
+
 ---
 
 ## API Endpoints
@@ -320,6 +329,26 @@ docker compose logs ollama -f   # Follow Ollama logs
 
 ---
 
+## Service Orchestration Notes
+
+### Service Startup Sequence
+- **Order matters**: Qdrant and Ollama should be available before Backend starts
+- **Dependencies**: Backend depends on both services reaching healthy status (via health checks)
+- **Health checks**: Each service has timeouts and retries configured (10s interval, 5s timeout, 5 retries)
+- **Initial startup time**: Full system startup takes 2-5 minutes (Ollama startup is slowest)
+- **Parallel startup**: Docker Compose starts all services in parallel, then waits for health checks to pass
+
+### Container Recreation vs. Restart
+- **`docker compose restart`**: Only restarts running containers, doesn't recreate them (keeps old environment)
+- **`docker compose up -d`**: Updates services but doesn't force recreation of unchanged containers
+- **`docker compose up -d --force-recreate`**: Removes and recreates all containers (necessary for environment variable changes)
+- **When to use each**:
+  - Restart: For quick restart of running services without code changes
+  - Up: For resuming stopped services
+  - Force-recreate: After changing docker-compose.yml or .env, especially for environment variables
+
+---
+
 ## Testing & Debugging
 
 ### API Testing
@@ -362,20 +391,33 @@ docker compose logs [service-name]
 
 ## Common Issues & Solutions
 
+### CORS and Environment Variable Configuration
+- **Issue**: Frontend unable to connect to backend despite services running
+- **Root Cause**: Environment variables are set at build time for React (REACT_APP_*), not runtime
+- **Solution**: When changing API URLs, the frontend Docker image must be rebuilt with `docker compose up -d --force-recreate frontend`
+- **Prevention**: Always update both `.env` and `docker-compose.yml` environment sections, then force container recreation
+- **Note**: Hardcoded environment variables in docker-compose.yml persist even after `.env` changes - explicit recreation is required
+
 ### "Failed to load documents" Error
 - **Cause**: Frontend can't reach backend API
 - **Fix**: Check CORS_ORIGINS and REACT_APP_API_URL in .env
 - **Check**: `curl http://localhost:8000/api/documents`
 
 ### "Input length exceeds context length" Error
-- **Cause**: Document chunks too large for embedding model
-- **Fix**: Reduce CHUNK_SIZE in .env (try 300-400)
-- **Note**: Already fixed in current config (CHUNK_SIZE=500)
+- **Cause**: Document chunks too large for embedding model (nomic-embed-text has ~2048 token limit)
+- **Why it happens**: When a single sentence exceeds chunk size, it's not split further, causing overflow
+- **Fix**: Reduce CHUNK_SIZE in .env (current: 500, minimum tested: 300-400)
+- **Better fix**: Implement force-splitting for sentences longer than chunk_size to prevent any single chunk from exceeding model limits
+- **Current implementation**: Already includes safety mechanism in chunking.py that splits long sentences
+- **Prevention**: Test with large documents (>500KB) during development to catch these issues early
 
 ### GPU Not Detected
 - **Cause**: NVIDIA drivers not installed or Docker missing GPU config
 - **Fix**: Verify `nvidia-smi` works, check docker-compose.yml GPU section
+- **Configuration**: GPU support requires explicit `deploy.resources.reservations.devices` config in docker-compose.yml
+- **Important**: GPU configuration is optional and doesn't block service startup - services fall back to CPU automatically
 - **Fallback**: System will use CPU (slower but functional)
+- **Verification**: Check `nvidia-smi` to confirm Tesla T4 (15GB VRAM) is available before deployment
 
 ### Services Not Starting
 - **Cause**: Port conflicts or insufficient disk space
@@ -386,6 +428,13 @@ docker compose logs [service-name]
 - **Cause**: Network issues or insufficient storage
 - **Fix**: Run manually: `docker exec ai-qa-ollama ollama pull llama2`
 - **Monitor**: Check docker compose logs for progress
+
+### Dependency Version Conflicts
+- **Issue**: PyPI dependency resolution can fail when packages have conflicting sub-dependencies
+- **Example**: `ollama==0.1.6` requires `httpx` but may have version conflicts with other packages
+- **Solution**: Use version ranges with constraints: `httpx>=0.25.2,<0.26.0` instead of exact pins
+- **Prevention**: When updating requirements.txt, test the Docker build immediately to catch conflicts early
+- **Note**: Large dependency trees (PyTorch with CUDA bindings, sentence-transformers) add ~2GB to image; build times can exceed 3 minutes
 
 ---
 
@@ -421,6 +470,23 @@ docker compose logs [service-name]
 - **Vertical**: Increase CHUNK_SIZE for more context per query
 - **Storage**: Use cloud storage for document persistence
 - **Cache**: Implement Redis for embedding caching
+
+---
+
+## Development Workflow & Best Practices
+
+### Testing Large Documents During Development
+- **Why important**: Large documents (>500KB) reveal chunking and embedding issues that small test files won't
+- **Key test case**: The Quran (736KB) exposed that single sentences can exceed chunk size limits
+- **Solution**: Implement force-splitting in chunking logic to guarantee no chunk exceeds model context limits
+- **Testing approach**: Start development with diverse document sizes (small .txt, medium .pdf, large .docx)
+- **Performance impact**: Large document processing uses significant resources; monitor GPU/CPU during testing
+
+### API Health Checks and Service Verification
+- **Always verify**: `curl http://localhost:8000/health` returns all services as healthy before testing
+- **Streaming responses**: When testing `/api/ask` endpoint, use `-N` flag with curl to see streaming: `curl -N http://localhost:8000/api/ask ...`
+- **Empty vector store**: New instances have no documents; upload test documents before querying
+- **Model availability**: Verify models are loaded with `docker exec ai-qa-ollama ollama list` - don't assume they auto-download
 
 ---
 
