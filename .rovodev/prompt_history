@@ -1,0 +1,33 @@
+
+# 2026-02-21 20:41:52.656415
++/usage 
+
+# 2026-02-21 20:41:58.437102
++/usage site 
+
+# 2026-02-21 20:42:03.843341
++/usage 
+
+# 2026-02-21 20:43:54.683503
++/usage site 
+
+# 2026-02-21 20:43:59.709813
++/usage 
+
+# 2026-02-21 20:44:06.999902
++/usage 
+
+# 2026-02-21 20:44:24.509746
++/yolo 
+
+# 2026-02-21 20:44:32.883579
++/usage 
+
+# 2026-02-21 20:44:37.319529
++/models 
+
+# 2026-02-21 20:44:42.196753
++/mode 
+
+# 2026-02-21 20:44:52.681862
++A project that works with artificial intelligence, so that files are uploaded to the agent’s memory and his questions are asked about these files. The research must be fast, the deductions must be more accurate, and the answer must be written with all professionalism. use docker for ollama ai models, use RAG, use React.
