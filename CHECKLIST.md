@@ -4,37 +4,37 @@ Use this checklist to verify your AI Document QA System is properly set up.
 
 ## Pre-Installation
 
-- [ ] Docker is installed (`docker --version`)
-- [ ] Docker Compose is installed (`docker-compose --version`)
-- [ ] At least 8GB RAM available
-- [ ] At least 20GB disk space free
-- [ ] Ports 3000, 6333, 8000, 11434 are available
+- [✅] Docker is installed (`docker --version`)
+- [✅] Docker Compose is installed (`docker-compose --version`)
+- [✅] At least 8GB RAM available
+- [✅] At least 20GB disk space free
+- [✅] Ports 3000, 6333, 8000, 11434 are available
 
 ## Installation
 
-- [ ] Repository cloned/downloaded
-- [ ] `.env` file created from `.env.example`
-- [ ] Docker services started (`docker-compose up -d`)
-- [ ] All containers running (`docker-compose ps`)
+- [✅] Repository cloned/downloaded
+- [✅] `.env` file created from `.env.example`
+- [✅] Docker services started (`docker-compose up -d`)
+- [✅] All containers running (`docker-compose ps`)
 
 ## Model Setup
 
-- [ ] Ollama container is healthy
-- [ ] Embedding model downloaded (`nomic-embed-text`)
-- [ ] LLM model downloaded (`llama2` or alternative)
-- [ ] Models verified (`docker exec ai-qa-ollama ollama list`)
+- [✅] Ollama container is healthy
+- [✅] Embedding model downloaded (`nomic-embed-text`)
+- [✅] LLM model downloaded (`llama2` or alternative)
+- [✅] Models verified (`docker exec ai-qa-ollama ollama list`)
 
 ## Service Health
 
-- [ ] Backend is healthy (`curl http://localhost:8000/health`)
-- [ ] Qdrant is accessible (`curl http://localhost:6333/health`)
-- [ ] Ollama is responding (`curl http://localhost:11434/api/tags`)
-- [ ] Frontend loads (`http://localhost:3000`)
+- [✅] Backend is healthy (`curl http://localhost:8000/health`)
+- [✅] Qdrant is accessible (`curl http://localhost:6333/health`)
+- [✅] Ollama is responding (`curl http://localhost:11434/api/tags`)
+- [✅] Frontend loads (`http://localhost:3000`)
 
 ## Functionality Tests
 
 ### Upload Test
-- [ ] Navigate to http://localhost:3000
+- [✅] Navigate to http://localhost:3000
 - [ ] Upload a test document (PDF/TXT)
 - [ ] Document appears in "My Documents" list
 - [ ] No error messages

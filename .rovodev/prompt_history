@@ -31,3 +31,33 @@
 
 # 2026-02-21 20:44:52.681862
 +A project that works with artificial intelligence, so that files are uploaded to the agent’s memory and his questions are asked about these files. The research must be fast, the deductions must be more accurate, and the answer must be written with all professionalism. use docker for ollama ai models, use RAG, use React.
+
+# 2026-02-21 21:05:01.770303
++start services
+
+# 2026-02-21 21:16:28.550556
++Failed to load documents
+
+# 2026-02-21 21:26:02.463332
++update code my studio URL is https://3000-01kj0yn6syy1m1h2qsb8prdxpd.cloudspaces.litng.ai , https://8000-01kj0yn6syy1m1h2qsb8prdxpd.cloudspaces.litng.ai
+
+# 2026-02-21 21:31:13.339166
++i in https://3000-01kj0yn6syy1m1h2qsb8prdxpd.cloudspaces.litng.ai but he say Failed to load documents
+
+# 2026-02-21 21:34:04.797683
++Error processing document: Server error '500 Internal Server Error' for url 'http://ollama:11434/api/embeddings' For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+
+# 2026-02-21 21:45:50.309201
++/sessions 
+
+# 2026-02-21 21:45:55.022056
++/usage 
+
+# 2026-02-21 21:46:00.696812
++/models 
+
+# 2026-02-21 21:46:18.922284
++use GPU for faster 
+
+# 2026-02-21 21:58:16.791820
++/memory init 

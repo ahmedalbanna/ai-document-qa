@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # Ollama LLM Service
@@ -14,16 +14,17 @@ services:
     networks:
       - ai-qa-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD-SHELL", "curl -f http://localhost:11434/api/tags || exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
-              count: all
+              count: 1
               capabilities: [gpu]
     restart: unless-stopped
 
@@ -42,10 +43,11 @@ services:
     networks:
       - ai-qa-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD-SHELL", "curl -f http://localhost:6333/health || exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     restart: unless-stopped
 
   # FastAPI Backend
@@ -66,9 +68,9 @@ services:
       - OLLAMA_PORT=11434
       - EMBEDDING_MODEL=nomic-embed-text
       - LLM_MODEL=llama2
-      - CHUNK_SIZE=1000
-      - CHUNK_OVERLAP=200
-      - CORS_ORIGINS=http://localhost:3000,http://localhost:80
+      - CHUNK_SIZE=500
+      - CHUNK_OVERLAP=100
+      - CORS_ORIGINS=https://3000-01kj0yn6syy1m1h2qsb8prdxpd.cloudspaces.litng.ai,http://localhost:3000,http://localhost:80
     depends_on:
       qdrant:
         condition: service_healthy
@@ -92,7 +94,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_API_URL=https://8000-01kj0yn6syy1m1h2qsb8prdxpd.cloudspaces.litng.ai
       - CHOKIDAR_USEPOLLING=true
     depends_on:
       - backend

@@ -44,7 +44,7 @@ fi
 
 echo ""
 echo "📦 Starting Docker services..."
-docker-compose up -d
+docker compose up -d
 
 echo ""
 echo "⏳ Waiting for services to be healthy..."

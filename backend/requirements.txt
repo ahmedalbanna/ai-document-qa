@@ -19,7 +19,7 @@ qdrant-client==1.7.0
 
 # Ollama Integration
 ollama==0.1.6
-httpx==0.26.0
+httpx>=0.25.2,<0.26.0
 
 # Text Processing
 langchain==0.1.0

@@ -100,6 +100,20 @@ class TextChunker:
         for sentence in sentences:
             sentence_size = len(sentence)
             
+            # If a single sentence is too large, force split it
+            if sentence_size > self.chunk_size:
+                # Save current chunk if exists
+                if current:
+                    chunks.append(" ".join(current))
+                    current = []
+                    current_size = 0
+                
+                # Force split the long sentence
+                for i in range(0, sentence_size, self.chunk_size - self.overlap):
+                    chunk = sentence[i:i + self.chunk_size]
+                    chunks.append(chunk)
+                continue
+            
             if current_size + sentence_size > self.chunk_size and current:
                 chunks.append(" ".join(current))
                 # Keep overlap
