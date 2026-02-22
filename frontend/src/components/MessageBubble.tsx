@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import StreamingText from './StreamingText';
 
 interface Message {
   id: string;
@@ -6,23 +7,41 @@ interface Message {
   content: string;
   sources?: any[];
   timestamp: Date;
+  isStreaming?: boolean;
 }
 
 interface MessageBubbleProps {
   message: Message;
+  onCopy?: (content: string) => void;
+  onRegenerate?: (messageId: string) => void;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onCopy, onRegenerate }) => {
   const [showSources, setShowSources] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const isUser = message.type === 'user';
 
+  const handleCopy = () => {
+    if (onCopy) {
+      onCopy(message.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleRegenerate = () => {
+    if (onRegenerate) {
+      onRegenerate(message.id);
+    }
+  };
+
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-fadeIn`}>
       <div className={`max-w-3xl ${isUser ? 'w-auto' : 'w-full'}`}>
         <div
           className={`
-            rounded-lg px-4 py-3 shadow-sm
+            rounded-lg px-4 py-3 shadow-sm transition-all duration-300
             ${isUser
               ? 'bg-blue-600 text-white'
               : 'bg-white border border-gray-200 text-gray-900'
@@ -30,26 +49,65 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           `}
         >
           {/* Message Content */}
-          <div className="whitespace-pre-wrap break-words">
-            {message.content || (
-              <span className="flex items-center text-gray-400">
-                <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Generating response...
-              </span>
+          <div className="break-words">
+            {message.content ? (
+              isUser ? (
+                <div className="whitespace-pre-wrap">{message.content}</div>
+              ) : (
+                <StreamingText 
+                  content={message.content} 
+                  isStreaming={message.isStreaming || false}
+                />
+              )
+            ) : (
+              <div className="flex items-center space-x-2 text-gray-400">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+                <span className="text-sm">AI is thinking...</span>
+              </div>
             )}
           </div>
 
-          {/* Timestamp */}
-          <div
-            className={`
-              text-xs mt-2
-              ${isUser ? 'text-blue-100' : 'text-gray-500'}
-            `}
-          >
-            {message.timestamp.toLocaleTimeString()}
+          {/* Timestamp and Actions */}
+          <div className="flex items-center justify-between mt-2">
+            <div
+              className={`
+                text-xs
+                ${isUser ? 'text-blue-100' : 'text-gray-500'}
+              `}
+            >
+              {message.timestamp.toLocaleTimeString()}
+            </div>
+            
+            {/* Message Actions */}
+            {message.content && (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleCopy}
+                  className={`text-xs px-2 py-1 rounded transition-all ${
+                    isUser 
+                      ? 'text-blue-100 hover:bg-blue-500' 
+                      : 'text-gray-500 hover:bg-gray-100'
+                  }`}
+                  title="Copy message"
+                >
+                  {copied ? '✓ Copied' : '📋 Copy'}
+                </button>
+                
+                {!isUser && !message.isStreaming && onRegenerate && (
+                  <button
+                    onClick={handleRegenerate}
+                    className="text-xs px-2 py-1 rounded text-gray-500 hover:bg-gray-100 transition-all"
+                    title="Regenerate response"
+                  >
+                    🔄 Regenerate
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

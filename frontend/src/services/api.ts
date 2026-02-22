@@ -77,7 +77,7 @@ class ApiService {
     return response.data;
   }
 
-  // Chat streaming
+  // Chat streaming with abort support and retry logic
   async chatStream(
     question: string,
     onChunk: (chunk: string) => void,
@@ -85,69 +85,112 @@ class ApiService {
     onError: (error: Error) => void,
     onComplete: () => void,
     documentId?: string,
-    topK: number = 5
+    topK: number = 5,
+    model?: string,
+    abortSignal?: AbortSignal,
+    onRetry?: (attempt: number) => void
   ): Promise<void> {
-    try {
-      const response = await fetch(`${API_URL}/api/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          question,
-          document_id: documentId,
-          top_k: topK,
-          stream: true,
-        }),
-      });
+    const maxRetries = 3;
+    let attempt = 0;
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+    while (attempt < maxRetries) {
+      try {
+        const response = await fetch(`${API_URL}/api/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            question,
+            document_id: documentId,
+            top_k: topK,
+            stream: true,
+            model: model,
+          }),
+          signal: abortSignal,
+        });
 
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('No response body');
-      }
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        }
 
-      const decoder = new TextDecoder();
-      let buffer = '';
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error('No response body');
+        }
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            
-            if (data === '[DONE]') {
-              onComplete();
-              return;
-            }
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
 
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.type === 'sources') {
-                onSources(parsed.data);
-              } else if (parsed.type === 'answer') {
-                onChunk(parsed.data);
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              
+              if (data === '[DONE]') {
+                onComplete();
+                return;
               }
-            } catch (e) {
-              // Ignore parse errors
+
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.type === 'sources') {
+                  onSources(parsed.data);
+                } else if (parsed.type === 'answer') {
+                  onChunk(parsed.data);
+                }
+              } catch (e) {
+                console.warn('Failed to parse stream data:', data);
+              }
             }
           }
         }
-      }
 
-      onComplete();
-    } catch (error) {
-      onError(error as Error);
+        onComplete();
+        return;
+      } catch (error: any) {
+        // Don't retry if aborted
+        if (error.name === 'AbortError') {
+          onError(new Error('Request was cancelled'));
+          return;
+        }
+
+        attempt++;
+        if (attempt < maxRetries) {
+          console.warn(`Stream failed (attempt ${attempt}/${maxRetries}), retrying...`, error);
+          if (onRetry) {
+            onRetry(attempt);
+          }
+          // Exponential backoff: 1s, 2s, 4s
+          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt - 1)));
+        } else {
+          onError(error as Error);
+        }
+      }
     }
+  }
+
+  // Get available models
+  async getModels(): Promise<{
+    models: Array<{
+      name: string;
+      full_name: string;
+      size: number;
+      modified: string;
+      description: string;
+    }>;
+    default: string;
+  }> {
+    const response = await this.client.get('/api/models');
+    return response.data;
   }
 
   // Health check

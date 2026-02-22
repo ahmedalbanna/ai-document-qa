@@ -20,6 +20,7 @@ class ChatRequest(BaseModel):
     """Chat request model"""
     question: str
     document_id: Optional[str] = None
+    model: Optional[str] = None  # Allow user to specify model (llama2, aya, llama3.2)
     top_k: int = 5
     stream: bool = True
 
@@ -106,11 +107,13 @@ async def chat(
                 
                 yield f"data: {json.dumps({'type': 'sources', 'data': sources_data})}\n\n"
                 
-                # Stream answer
+                # Stream answer with selected model
+                selected_model = request.model or os.getenv("LLM_MODEL", "llama2")
                 async for chunk_text in llm_service.generate_answer(
                     question=request.question,
                     context_chunks=context_chunks,
-                    stream=True
+                    stream=True,
+                    model=selected_model
                 ):
                     yield f"data: {json.dumps({'type': 'answer', 'data': chunk_text})}\n\n"
                 
@@ -123,10 +126,12 @@ async def chat(
         else:
             # Non-streaming response
             answer = ""
+            selected_model = request.model or os.getenv("LLM_MODEL", "llama2")
             async for chunk in llm_service.generate_answer(
                 question=request.question,
                 context_chunks=context_chunks,
-                stream=False
+                stream=False,
+                model=selected_model
             ):
                 answer += chunk
             

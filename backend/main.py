@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 from api.upload import router as upload_router
 from api.chat import router as chat_router
 from api.documents import router as documents_router
+from api.models import router as models_router
 from services.vector_store import VectorStoreService
 from services.llm import LLMService
 
@@ -76,6 +77,7 @@ app.add_middleware(
 app.include_router(upload_router, prefix="/api", tags=["upload"])
 app.include_router(chat_router, prefix="/api", tags=["chat"])
 app.include_router(documents_router, prefix="/api", tags=["documents"])
+app.include_router(models_router, prefix="/api", tags=["models"])
 
 @app.get("/")
 async def root():

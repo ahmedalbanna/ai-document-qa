@@ -35,7 +35,8 @@ class LLMService:
         self,
         question: str,
         context_chunks: List[Dict[str, Any]],
-        stream: bool = False
+        stream: bool = False,
+        model: str = None
     ) -> AsyncGenerator[str, None]:
         """
         Generate answer using RAG
@@ -44,10 +45,14 @@ class LLMService:
             question: User question
             context_chunks: Retrieved context chunks
             stream: Whether to stream response
+            model: Model to use (overrides default)
             
         Yields:
             Answer text chunks if streaming
         """
+        # Use provided model or default
+        selected_model = model or self.model
+        
         # Build context from chunks
         context = self._build_context(context_chunks)
         
@@ -56,10 +61,10 @@ class LLMService:
         
         # Generate response
         if stream:
-            async for chunk in self._stream_generate(prompt):
+            async for chunk in self._stream_generate(prompt, selected_model):
                 yield chunk
         else:
-            response = await self._generate(prompt)
+            response = await self._generate(prompt, selected_model)
             yield response
     
     def _build_context(self, chunks: List[Dict[str, Any]]) -> str:
@@ -139,13 +144,13 @@ Answer (be accurate, professional, cite your sources, and respond in the same la
         
         return prompt
     
-    async def _generate(self, prompt: str) -> str:
+    async def _generate(self, prompt: str, model: str = None) -> str:
         """Generate non-streaming response"""
         try:
             response = await self.client.post(
                 f"{self.base_url}/api/generate",
                 json={
-                    "model": self.model,
+                    "model": model or self.model,
                     "prompt": prompt,
                     "stream": False
                 }
@@ -157,14 +162,14 @@ Answer (be accurate, professional, cite your sources, and respond in the same la
             logger.error(f"Error generating response: {str(e)}")
             raise
     
-    async def _stream_generate(self, prompt: str) -> AsyncGenerator[str, None]:
+    async def _stream_generate(self, prompt: str, model: str = None) -> AsyncGenerator[str, None]:
         """Generate streaming response"""
         try:
             async with self.client.stream(
                 "POST",
                 f"{self.base_url}/api/generate",
                 json={
-                    "model": self.model,
+                    "model": model or self.model,
                     "prompt": prompt,
                     "stream": True
                 }

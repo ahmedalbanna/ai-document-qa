@@ -9,7 +9,7 @@ agent:
   # Temperature setting for AI model responses (0.0-1.0)
   temperature: 0.3
   # Model ID to use for the agent. See /models command to list available models.
-  modelId: claude-haiku-4-5@20251001
+  modelId: auto
   # Optional model variant key selected from dynamic configuration.
   modelVariant: null
   # Enable the deep planning tool for complex task planning
@@ -134,7 +134,7 @@ toolPermissions:
 
 announcementTracking:
   announcementViewCounts:
-    e30622d15b1c125dc75cbb7dd55a5ac8: 3
+    e30622d15b1c125dc75cbb7dd55a5ac8: 4
 
 sessionFeedback:
   permanentlyDisabled: false
