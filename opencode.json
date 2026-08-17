@@ -1,0 +1,58 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    "mcp": {
+        "erpnext-mcp-gateway-viewer": {
+            "type": "remote",
+            "url": "http://185.190.140.93:8022/mcp",
+            "enabled": true,
+            "headers": {
+                "Authorization": "Bearer viewer-token"
+            }
+        },
+        "erpnext-mcp-gateway-analyst": {
+            "type": "remote",
+            "url": "http://185.190.140.93:8022/mcp",
+            "enabled": false,
+            "headers": {
+                "Authorization": "Bearer analyst-token"
+            }
+        },
+        "erpnext-mcp-gateway-operator": {
+            "type": "remote",
+            "url": "http://185.190.140.93:8022/mcp",
+            "enabled": false,
+            "headers": {
+                "Authorization": "Bearer operator-token"
+            }
+        },
+        "erpnext-mcp-gateway-admin": {
+            "type": "remote",
+            "url": "http://185.190.140.93:8022/mcp",
+            "enabled": false,
+            "headers": {
+                "Authorization": "Bearer admin-token"
+            }
+        }
+    },
+    "provider": {
+        "ollama": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Ollama (local)",
+            "options": {
+                "baseURL": "http://localhost:11434/v1"
+            },
+            "models": {
+                "qwen2.5-coder:32b": {
+                    "name": "Qwen 2.5 Coder 32B"
+                },
+                "llama2": {
+                    "name": "Llama 2"
+                },
+                "aya": {
+                    "name": "Aya (multilingual)"
+                }
+            }
+        }
+    },
+    "model": "ollama/qwen2.5-coder:32b"
+}

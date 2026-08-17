@@ -121,3 +121,24 @@
 
 # 2026-02-22 00:07:58.076721
 +improve stream chat
+
+# 2026-02-22 00:15:12.117292
++/mode 
+
+# 2026-02-22 00:15:16.922634
++I use this project in the Qur’an and the Sunnah of the Prophet. Do you have any suggestions to develop the project and make it smarter?
+
+# 2026-02-22 00:23:02.737941
++/sessions 
+
+# 2026-02-22 00:23:27.254543
++/models 
+
+# 2026-02-22 00:23:55.125454
++add command to docker compose for ollama pull models
+
+# 2026-02-22 00:28:31.006259
++make qdrant database in my current directory not in docker valoumes
+
+# 2026-02-22 00:29:30.211664
++make ollama database in my current directory not in docker valoumes

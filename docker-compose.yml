@@ -8,9 +8,10 @@ services:
     ports:
       - "11434:11434"
     volumes:
-      - ollama_data:/root/.ollama
+      - ./ollama_data:/root/.ollama
     environment:
       - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_CONTEXT_LENGTH=32768
     networks:
       - ai-qa-network
     healthcheck:
@@ -26,6 +27,7 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+    entrypoint: /bin/sh -c "ollama serve & sleep 10 && ollama pull llama2 && ollama pull qwen2.5-coder:7b && ollama pull nomic-embed-text && wait"
     restart: unless-stopped
 
   # Qdrant Vector Database
@@ -36,7 +38,7 @@ services:
       - "6333:6333"
       - "6334:6334"
     volumes:
-      - qdrant_data:/qdrant/storage
+      - ./qdrant_data:/qdrant/storage
     environment:
       - QDRANT__SERVICE__HTTP_PORT=6333
       - QDRANT__SERVICE__GRPC_PORT=6334

@@ -61,3 +61,5 @@ uploads/
 
 # Temporary
 tmp_rovodev_*
+ollama_data
+qdrant_data
