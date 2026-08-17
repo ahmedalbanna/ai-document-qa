@@ -63,3 +63,5 @@ uploads/
 tmp_rovodev_*
 ollama_data
 qdrant_data
+# opencode binary
+.opencode/bin/
